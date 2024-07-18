@@ -197,25 +197,25 @@
 
     <script>
         const web3Words = [
-            { word: 'ETH', meaning: 'Ethereum, a blockchain platform with smart contract functionality' },
+        { "word": "ERC-20", "meaning": "Standard for fungible tokens" },
+  { "word": "ERC-721", "meaning": "Standard for non-fungible tokens (NFTs)" },
+  { "word": "ERC-777", "meaning": "Standard for advanced token interactions" },
+  { "word": "ERC-1155", "meaning": "Standard for multi-token contracts" },
+  { "word": "ERC-223", "meaning": "Standard for safe token transfers" },
+  { "word": "ERC-827", "meaning": "Standard for token interactions (extending ERC-20)" },
+  { "word": "ERC-884", "meaning": "Standard for representing corporate shares as tokens" },
+  { "word": "ERC-865", "meaning": "Standard for paying transaction fees with tokens" },
+  { "word": "ERC-998", "meaning": "Standard for composable NFTs" },
+  { "word": "ERC-875", "meaning": "Standard for sending multiple tokens in a single transaction" },
+  { "word": "ERC-1363", "meaning": "Standard for payable tokens (interacting with contracts)" },
+  { "word": "ERC-1400", "meaning": "Standard for security tokens" },
+  { "word": "ERC-1410", "meaning": "Standard for partially fungible tokens (subsets of ERC-1400)" },
+{ word: 'ETH', meaning: 'Ethereum, a blockchain platform with smart contract functionality' },
 { word: 'BTC', meaning: 'Bitcoin, the first decentralized cryptocurrency' },
 { word: 'GAS', meaning: 'A fee for processing transactions on a blockchain' },
 { word: 'NODE', meaning: 'A device or point in a blockchain network' },
 { word: 'HASH', meaning: 'A function that converts an input into a fixed-length string of characters' },
 { word: 'DAPP', meaning: 'Decentralized application built on a blockchain' },
-          { "standard": "ERC-20", "description": "Standard for fungible tokens" },
-  { "standard": "ERC-721", "description": "Standard for non-fungible tokens (NFTs)" },
-  { "standard": "ERC-777", "description": "Standard for advanced token interactions" },
-  { "standard": "ERC-1155", "description": "Standard for multi-token contracts" },
-  { "standard": "ERC-223", "description": "Standard for safe token transfers" },
-  { "standard": "ERC-827", "description": "Standard for token interactions (extending ERC-20)" },
-  { "standard": "ERC-884", "description": "Standard for representing corporate shares as tokens" },
-  { "standard": "ERC-865", "description": "Standard for paying transaction fees with tokens" },
-  { "standard": "ERC-998", "description": "Standard for composable NFTs" },
-  { "standard": "ERC-875", "description": "Standard for sending multiple tokens in a single transaction" },
-  { "standard": "ERC-1363", "description": "Standard for payable tokens (interacting with contracts)" },
-  { "standard": "ERC-1400", "description": "Standard for security tokens" },
-  { "standard": "ERC-1410", "description": "Standard for partially fungible tokens (subsets of ERC-1400)" },
 { word: 'KEY', meaning: 'A cryptographic key used in blockchain transactions' },
 { word: 'POW', meaning: 'Proof-of-Work, a consensus algorithm that requires computational effort' },
 { word: 'POS', meaning: 'Proof-of-Stake, a consensus algorithm that selects validators based on stake' },
@@ -307,7 +307,7 @@
 { word: 'MINER', meaning: 'A participant in the blockchain network who validates and records transactions' },
 { word: 'TXN', meaning: 'Abbreviation for transaction' },
 { word: 'GAS', meaning: 'A fee for processing transactions on a blockchain' },
-{ word: 'VALID', meaning: 'Short for validator, a participant in the blockchain who verifies transactions' },
+{ word: 'VALID', meaning: 'Short for validator, a participant in the blockchain whoverifies transactions' },
 { word: 'BYTES', meaning: 'Units of digital information' },
 { word: 'COIN', meaning: 'A digital currency' },
 { word: 'COLD', meaning: 'Referring to cold storage, a method of storing cryptocurrencies offline' },
@@ -415,9 +415,8 @@
 { word: 'VALID', meaning: 'Short for validator, a participant in the blockchain who verifies transactions' },
 { word: 'BYTES', meaning: 'Units of digital information' },
 { word: 'COIN', meaning: 'A digital currency' },
-{ word: 'NODE', meaning: 'A device or point in a blockchain network' }
-
-        ];
+{ word: 'NODE', meaning: 'A device or point in a blockchain network' },   
+];
 
         let currentWord;
         let shuffledWord;
@@ -439,8 +438,8 @@
         let isMusicPlaying = true; // Music starts playing automatically
 
         function shuffleWord(word) {
+            let shuffled;
             return word.split('').sort(() => Math.random() - 0.5).join('');
-        }
 
         function newWord() {
             if (usedWords.length === web3Words.length) {
@@ -460,9 +459,9 @@
         function displayWord() {
             wordContainer.innerHTML = '';
             letterContainer.innerHTML = '';
+
             
             shuffledWord.split('').forEach(letter => {
-                const letterDiv = document.createElement('div');
                 letterDiv.classList.add('letter', 'unselected');
                 letterDiv.textContent = letter;
                 letterDiv.addEventListener('click', () => moveLetter(letterDiv));
