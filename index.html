@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web3 Word Arrangement Game</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #f0f0f0;
+        }
+
+        .container {
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            max-width: 500px;
+            width: 90%;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+
+        #game-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        #word-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin-bottom: 20px;
+            min-height: 50px;
+            border: 2px dashed #007bff;
+            padding: 10px;
+            border-radius: 5px;
+        }
+
+        #letter-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .letter {
+            width: 40px;
+            height: 40px;
+            border: 2px solid #007bff;
+            border-radius: 5px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        .letter.unselected {
+            background-color: #007bff;
+            color: white;
+        }
+
+        .letter.selected {
+            background-color: #ff4136;
+            border-color: #ff4136;
+            color: white;
+        }
+
+        .button-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        button {
+            flex: 1;
+            padding: 10px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s, opacity 0.3s;
+        }
+
+        button:hover:not(:disabled) {
+            background-color: #0056b3;
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        #result {
+            margin-top: 20px;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .popup {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: #ff4136;
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.3);
+            z-index: 1000;
+            display: none;
+        }
+
+        @media (max-width: 480px) {
+            .letter {
+                width: 30px;
+                height: 30px;
+                font-size: 16px;
+            }
+            
+            h1 {
+                font-size: 24px;
+            }
+        }
+
+        #start-again {
+            display: none;
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        #start-again:hover {
+            background-color: #218838;
+        }
+
+        #music-control {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 5px 10px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        #music-control:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Web3 Word Arrangement Game</h1>
+        <div id="game-info">
+            <p>Time left: <span id="time-left">3:00</span></p>
+            <p>Tokens: <span id="tokens">0</span></p>
+        </div>
+        <div id="word-container"></div>
+        <div id="letter-container"></div>
+        <div class="button-container">
+            <button id="check-word">Check Word</button>
+        </div>
+        <div id="result"></div>
+        <button id="start-again">Start Again</button>
+    </div>
+    <div id="popup" class="popup">You lost!</div>
+    <button id="music-control">Music Off</button>
+    <audio id="background-music" loop autoplay>
+        <source src="https://example.com/path/to/your/music.mp3" type="audio/mpeg">
+        Your browser does not support the audio element.
+    </audio>
+
+    <script>
+        const web3Words = [
+            { word: 'ETH', meaning: 'Ethereum, a blockchain platform with smart contract functionality' },
+{ word: 'BTC', meaning: 'Bitcoin, the first decentralized cryptocurrency' },
+{ word: 'GAS', meaning: 'A fee for processing transactions on a blockchain' },
+{ word: 'NODE', meaning: 'A device or point in a blockchain network' },
+{ word: 'HASH', meaning: 'A function that converts an input into a fixed-length string of characters' },
+{ word: 'DAPP', meaning: 'Decentralized application built on a blockchain' },
+          { "standard": "ERC-20", "description": "Standard for fungible tokens" },
+  { "standard": "ERC-721", "description": "Standard for non-fungible tokens (NFTs)" },
+  { "standard": "ERC-777", "description": "Standard for advanced token interactions" },
+  { "standard": "ERC-1155", "description": "Standard for multi-token contracts" },
+  { "standard": "ERC-223", "description": "Standard for safe token transfers" },
+  { "standard": "ERC-827", "description": "Standard for token interactions (extending ERC-20)" },
+  { "standard": "ERC-884", "description": "Standard for representing corporate shares as tokens" },
+  { "standard": "ERC-865", "description": "Standard for paying transaction fees with tokens" },
+  { "standard": "ERC-998", "description": "Standard for composable NFTs" },
+  { "standard": "ERC-875", "description": "Standard for sending multiple tokens in a single transaction" },
+  { "standard": "ERC-1363", "description": "Standard for payable tokens (interacting with contracts)" },
+  { "standard": "ERC-1400", "description": "Standard for security tokens" },
+  { "standard": "ERC-1410", "description": "Standard for partially fungible tokens (subsets of ERC-1400)" },
+{ word: 'KEY', meaning: 'A cryptographic key used in blockchain transactions' },
+{ word: 'POW', meaning: 'Proof-of-Work, a consensus algorithm that requires computational effort' },
+{ word: 'POS', meaning: 'Proof-of-Stake, a consensus algorithm that selects validators based on stake' },
+{ word: 'DAO', meaning: 'Decentralized Autonomous Organization' },
+{ word: 'DEX', meaning: 'Decentralized exchange' },
+{ word: 'NFT', meaning: 'Non-Fungible Token, a unique digital asset' },
+{ word: 'LP', meaning: 'Liquidity Pool, a pool of tokens locked in a smart contract to provide liquidity' },
+{ word: 'SHA', meaning: 'Secure Hash Algorithm, used in cryptography' },
+{ word: 'RPC', meaning: 'Remote Procedure Call, a protocol for requesting services from programs on other computers' },
+{ word: 'TX', meaning: 'Transaction, an operation that is recorded on the blockchain' },
+{ word: 'DAO', meaning: 'Decentralized Autonomous Organization' },
+{ word: 'RPC', meaning: 'Remote Procedure Call, a protocol for requesting services from programs on other computers' },
+{ word: 'GAS', meaning: 'A fee for processing transactions on a blockchain' },
+{ word: 'DAPP', meaning: 'Decentralized application built on a blockchain' },
+{ word: 'P2P', meaning: 'Peer-to-peer, direct interaction between two parties without intermediaries' },
+{ word: 'KEY', meaning: 'A cryptographic key used in blockchain transactions' },
+{ word: 'POW', meaning: 'Proof-of-Work, a consensus algorithm that requires computational effort' },
+{ word: 'POS', meaning: 'Proof-of-Stake, a consensus algorithm that selects validators based on stake' },
+{ word: 'NFT', meaning: 'Non-Fungible Token, a unique digital asset' },
+{ word: 'LP', meaning: 'Liquidity Pool, a pool of tokens locked in a smart contract to provide liquidity' },
+{ word: 'DAO', meaning: 'Decentralized Autonomous Organization' },
+{ word: 'DEX', meaning: 'Decentralized exchange' },
+{ word: 'SHA', meaning: 'Secure Hash Algorithm, used in cryptography' },
+{ word: 'RPC', meaning: 'Remote Procedure Call, a protocol for requesting services from programs on other computers' },
+{ word: 'TX', meaning: 'Transaction, an operation that is recorded on the blockchain' },
+{ word: 'MINER', meaning: 'A participant in the blockchain network who validates and records transactions' },
+{ word: 'LEDGER', meaning: 'A record-keeping system for transactions' },
+{ word: 'TOKEN', meaning: 'A digital asset issued on a blockchain' },
+{ word: 'STAKING', meaning: 'Locking up funds in a blockchain network to support its operations' },
+{ word: 'MINT', meaning: 'The process of creating new tokens on a blockchain' },
+{ word: 'CHAIN', meaning: 'A sequence of blocks in a blockchain' },
+{ word: 'FORK', meaning: 'A split in the blockchain creating two separate chains' },
+{ word: 'BLOCK', meaning: 'A unit of data on the blockchain' },
+{ word: 'DEFI', meaning: 'Decentralized Finance, financial services on public blockchains' },
+{ word: 'ERC20', meaning: 'A standard for creating tokens on Ethereum' },
+{ word: 'WALLET', meaning: 'A digital tool to store and manage cryptocurrencies' },
+{ word: 'TXN', meaning: 'Abbreviation for transaction' },
+{ word: 'SHARD', meaning: 'A method of splitting a blockchain into smaller, more manageable pieces' },
+{ word: 'VALID', meaning: 'Short for validator, a participant in the blockchain who verifies transactions' },
+{ word: 'BYTES', meaning: 'Units of digital information' },
+{ word: 'ETH', meaning: 'Ethereum, a blockchain platform with smart contract functionality' },
+{ word: 'BTC', meaning: 'Bitcoin, the first decentralized cryptocurrency' },
+{ word: 'GAS', meaning: 'A fee for processing transactions on a blockchain' },
+{ word: 'NODE', meaning: 'A device or point in a blockchain network' },
+{ word: 'HASH', meaning: 'A function that converts an input into a fixed-length string of characters' },
+{ word: 'DAPP', meaning: 'Decentralized application built on a blockchain' },
+{ word: 'POW', meaning: 'Proof-of-Work, a consensus algorithm that requires computational effort' },
+{ word: 'POS', meaning: 'Proof-of-Stake, a consensus algorithm that selects validators based on stake' },
+{ word: 'DAO', meaning: 'Decentralized Autonomous Organization' },
+{ word: 'DEX', meaning: 'Decentralized exchange' },
+{ word: 'NFT', meaning: 'Non-Fungible Token, a unique digital asset' },
+{ word: 'LP', meaning: 'Liquidity Pool, a pool of tokens locked in a smart contract to provide liquidity' },
+{ word: 'SHA', meaning: 'Secure Hash Algorithm, used in cryptography' },
+{ word: 'RPC', meaning: 'Remote Procedure Call, a protocol for requesting services from programs on other computers' },
+{ word: 'TX', meaning: 'Transaction, an operation that is recorded on the blockchain' },
+{ word: 'COIN', meaning: 'A digital currency' },
+{ word: 'API', meaning: 'Application Programming Interface, a set of functions for building software' },
+{ word: 'AIRDROP', meaning: 'Distributing free tokens to promote a cryptocurrency' },
+{ word: 'HALVING', meaning: 'An event that reduces the reward for mining new blocks by half' },
+{ word: 'NONCE', meaning: 'A random number used once in cryptographic communication' },
+{ word: 'MINT', meaning: 'The process of creating new tokens on a blockchain' },
+{ word: 'CHAIN', meaning: 'A sequence of blocks in a blockchain' },
+{ word: 'STAKING', meaning: 'Locking up funds in a blockchain network to support its operations' },
+{ word: 'VALID', meaning: 'Short for validator, a participant in the blockchain who verifies transactions' },
+{ word: 'LEDGER', meaning: 'A record-keeping system for transactions' },
+{ word: 'TOKEN', meaning: 'A digital asset issued on a blockchain' },
+{ word: 'COLD', meaning: 'Referring to cold storage, a method of storing cryptocurrencies offline' },
+{ word: 'ERC20', meaning: 'A standard for creating tokens on Ethereum' },
+{ word: 'PEER', meaning: 'A participant in a peer-to-peer network' },
+{ word: 'COIN', meaning: 'A digital currency' },
+{ word: 'TURING', meaning: 'Referring to Turing-complete, a system capable of performing any computational task' },
+{ word: 'ORACLE', meaning: 'A service that provides external data to smart contracts' },
+{ word: 'REWARD', meaning: 'Tokens given as an incentive for participating in network operations' },
+{ word: 'SUPPLY', meaning: 'The total amount of a cryptocurrency in circulation' },
+{ word: 'GWEI', meaning: 'A denomination of Ethereum' },
+{ word: 'FEE', meaning: 'A charge for processing a transaction' },
+{ word: 'CHAIN', meaning: 'A sequence of blocks in a blockchain' },
+{ word: 'VALID', meaning: 'Short for validator, a participant in the blockchain who verifies transactions' },
+{ word: 'COIN', meaning: 'A digital currency' },
+{ word: 'BYTES', meaning: 'Units of digital information' },
+{ word: 'COLD', meaning: 'Referring to cold storage, a method of storing cryptocurrencies offline' },
+{ word: 'PEER', meaning: 'A participant in a peer-to-peer network' },
+{ word: 'REWARD', meaning: 'Tokens given as an incentive for participating in network operations' },
+{ word: 'SUPPLY', meaning: 'The total amount of a cryptocurrency in circulation' },
+{ word: 'NODE', meaning: 'A device or point in a blockchain network' },
+{ word: 'HASH', meaning: 'A function that converts an input into a fixed-length string of characters' },
+{ word: 'BLOCK', meaning: 'A unit of data on the blockchain' },
+{ word: 'VALID', meaning: 'Short for validator, a participant in the blockchain who verifies transactions' },
+{ word: 'MINER', meaning: 'A participant in the blockchain network who validates and records transactions' },
+{ word: 'TXN', meaning: 'Abbreviation for transaction' },
+{ word: 'GAS', meaning: 'A fee for processing transactions on a blockchain' },
+{ word: 'VALID', meaning: 'Short for validator, a participant in the blockchain who verifies transactions' },
+{ word: 'BYTES', meaning: 'Units of digital information' },
+{ word: 'COIN', meaning: 'A digital currency' },
+{ word: 'COLD', meaning: 'Referring to cold storage, a method of storing cryptocurrencies offline' },
+{ word: 'NODE', meaning: 'A device or point in a blockchain network' },
+{ word: 'HASH', meaning: 'A function that converts an input into a fixed-length string of characters' },
+{ word: 'BLOCK', meaning: 'A unit of data on the blockchain' },
+{ word: 'TXN', meaning: 'Abbreviation for transaction' },
+{ word: 'GAS', meaning: 'A fee for processing transactions on a blockchain' },
+{ word: 'VALID', meaning: 'Short for validator, a participant in the blockchain who verifies transactions' },
+{ word: 'BYTES', meaning: 'Units of digital information' },
+{ word: 'COIN', meaning: 'A digital currency' },
+{ word: 'NODE', meaning: 'A device or point in a blockchain network' },
+{ word: 'HASH', meaning: 'A function that converts an input into a fixed-length string of characters' },
+{ word: 'BLOCK', meaning: 'A unit of data on the blockchain' },
+{ word: 'TXN', meaning: 'Abbreviation for transaction' },
+{ word: 'GAS', meaning: 'A fee for processing transactions on a blockchain' },
+{ word: 'VALID', meaning: 'Short for validator, a participant in the blockchain who verifies transactions' },
+{ word: 'BYTES', meaning: 'Units of digital information' },
+{ word: 'COIN', meaning: 'A digital currency' },
+{ word: 'NODE', meaning: 'A device or point in a blockchain network' },
+{ word: 'HASH', meaning: 'A function that converts an input into a fixed-length string of characters' },
+{ word: 'BLOCK', meaning: 'A unit of data on the blockchain' },
+{ word: 'TXN', meaning: 'Abbreviation for transaction' },
+{ word: 'GAS', meaning: 'A fee for processing transactions on a blockchain' },
+{ word: 'VALID', meaning: 'Short for validator, a participant in the blockchain who verifies transactions' },
+{ word: 'BYTES', meaning: 'Units of digital information' },
+{ word: 'COIN', meaning: 'A digital currency' },
+{ word: 'NODE', meaning: 'A device or point in a blockchain network' },
+{ word: 'HASH', meaning: 'A function that converts an input into a fixed-length string of characters' },
+{ word: 'BLOCK', meaning: 'A unit of data on the blockchain' },
+{ word: 'TXN', meaning: 'Abbreviation for transaction' },
+{ word: 'GAS', meaning: 'A fee for processing transactions on a blockchain' },
+{ word: 'VALID', meaning: 'Short for validator, a participant in the blockchain who verifies transactions' },
+{ word: 'BYTES', meaning: 'Units of digital information' },
+{ word: 'COIN', meaning: 'A digital currency' },
+{ word: 'NODE', meaning: 'A device or point in a blockchain network' },
+{ word: 'HASH', meaning: 'A function that converts an input into a fixed-length string of characters' },
+{ word: 'BLOCK', meaning: 'A unit of data on the blockchain' },
+{ word: 'TXN', meaning: 'Abbreviation for transaction' },
+{ word: 'GAS', meaning: 'A fee for processing transactions on a blockchain' },
+{ word: 'VALID', meaning: 'Short for validator, a participant in the blockchain who verifies transactions' },
+{ word: 'BYTES', meaning: 'Units of digital information' },
+{ word: 'COIN', meaning: 'A digital currency' },
+{ word: 'NODE', meaning: 'A device or point in a blockchain network' },
+{ word: 'HASH', meaning: 'A function that converts an input into a fixed-length string of characters' },
+{ word: 'BLOCK', meaning: 'A unit of data on the blockchain' },
+{ word: 'TXN', meaning: 'Abbreviation for transaction' },
+{ word: 'GAS', meaning: 'A fee for processing transactions on a blockchain' },
+{ word: 'VALID', meaning: 'Short for validator, a participant in the blockchain who verifies transactions' },
+{ word: 'BYTES', meaning: 'Units of digital information' },
+{ word: 'COIN', meaning: 'A digital currency' },
+{ word: 'NODE', meaning: 'A device or point in a blockchain network' },
+{ word: 'HASH', meaning: 'A function that converts an input into a fixed-length string of characters' },
+{ word: 'BLOCK', meaning: 'A unit of data on the blockchain' },
+{ word: 'TXN', meaning: 'Abbreviation for transaction' },
+{ word: 'GAS', meaning: 'A fee for processing transactions on a blockchain' },
+{ word: 'VALID', meaning: 'Short for validator, a participant in the blockchain who verifies transactions' },
+{ word: 'BYTES', meaning: 'Units of digital information' },
+{ word: 'COIN', meaning: 'A digital currency' },
+{ word: 'NODE', meaning: 'A device or point in a blockchain network' },
+{ word: 'HASH', meaning: 'A function that converts an input into a fixed-length string of characters' },
+{ word: 'BLOCK', meaning: 'A unit of data on the blockchain' },
+{ word: 'TXN', meaning: 'Abbreviation for transaction' },
+{ word: 'GAS', meaning: 'A fee for processing transactions on a blockchain' },
+{ word: 'VALID', meaning: 'Short for validator, a participant in the blockchain who verifies transactions' },
+{ word: 'BYTES', meaning: 'Units of digital information' },
+{ word: 'COIN', meaning: 'A digital currency' },
+{ word: 'NODE', meaning: 'A device or point in a blockchain network' },
+{ word: 'HASH', meaning: 'A function that converts an input into a fixed-length string of characters' },
+{ word: 'BLOCK', meaning: 'A unit of data on the blockchain' },
+{ word: 'TXN', meaning: 'Abbreviation for transaction' },
+{ word: 'GAS', meaning: 'A fee for processing transactions on a blockchain' },
+{ word: 'VALID', meaning: 'Short for validator, a participant in the blockchain who verifies transactions' },
+{ word: 'BYTES', meaning: 'Units of digital information' },
+{ word: 'COIN', meaning: 'A digital currency' },
+{ word: 'NODE', meaning: 'A device or point in a blockchain network' },
+{ word: 'HASH', meaning: 'A function that converts an input into a fixed-length string of characters' },
+{ word: 'BLOCK', meaning: 'A unit of data on the blockchain' },
+{ word: 'TXN', meaning: 'Abbreviation for transaction' },
+{ word: 'GAS', meaning: 'A fee for processing transactions on a blockchain' },
+{ word: 'VALID', meaning: 'Short for validator, a participant in the blockchain who verifies transactions' },
+{ word: 'BYTES', meaning: 'Units of digital information' },
+{ word: 'COIN', meaning: 'A digital currency' },
+{ word: 'NODE', meaning: 'A device or point in a blockchain network' },
+{ word: 'HASH', meaning: 'A function that converts an input into a fixed-length string of characters' },
+{ word: 'BLOCK', meaning: 'A unit of data on the blockchain' },
+{ word: 'TXN', meaning: 'Abbreviation for transaction' },
+{ word: 'GAS', meaning: 'A fee for processing transactions on a blockchain' },
+{ word: 'VALID', meaning: 'Short for validator, a participant in the blockchain who verifies transactions' },
+{ word: 'BYTES', meaning: 'Units of digital information' },
+{ word: 'COIN', meaning: 'A digital currency' },
+{ word: 'NODE', meaning: 'A device or point in a blockchain network' },
+{ word: 'HASH', meaning: 'A function that converts an input into a fixed-length string of characters' },
+{ word: 'BLOCK', meaning: 'A unit of data on the blockchain' },
+{ word: 'TXN', meaning: 'Abbreviation for transaction' },
+{ word: 'GAS', meaning: 'A fee for processing transactions on a blockchain' },
+{ word: 'VALID', meaning: 'Short for validator, a participant in the blockchain who verifies transactions' },
+{ word: 'BYTES', meaning: 'Units of digital information' },
+{ word: 'COIN', meaning: 'A digital currency' },
+{ word: 'NODE', meaning: 'A device or point in a blockchain network' },
+{ word: 'HASH', meaning: 'A function that converts an input into a fixed-length string of characters' },
+{ word: 'BLOCK', meaning: 'A unit of data on the blockchain' },
+{ word: 'TXN', meaning: 'Abbreviation for transaction' },
+{ word: 'GAS', meaning: 'A fee for processing transactions on a blockchain' },
+{ word: 'VALID', meaning: 'Short for validator, a participant in the blockchain who verifies transactions' },
+{ word: 'BYTES', meaning: 'Units of digital information' },
+{ word: 'COIN', meaning: 'A digital currency' },
+{ word: 'NODE', meaning: 'A device or point in a blockchain network' }
+
+        ];
+
+        let currentWord;
+        let shuffledWord;
+        let timeLeft = 180;
+        let tokens = 0;
+        let timer;
+        let usedWords = [];
+
+        const wordContainer = document.getElementById('word-container');
+        const letterContainer = document.getElementById('letter-container');
+        const checkButton = document.getElementById('check-word');
+        const resultDiv = document.getElementById('result');
+        const tokensSpan = document.getElementById('tokens');
+        const timeLeftSpan = document.getElementById('time-left');
+        const popup = document.getElementById('popup');
+        const startAgainButton = document.getElementById('start-again');
+        const backgroundMusic = document.getElementById('background-music');
+        const musicControl = document.getElementById('music-control');
+        let isMusicPlaying = true; // Music starts playing automatically
+
+        function shuffleWord(word) {
+            return word.split('').sort(() => Math.random() - 0.5).join('');
+        }
+
+        function newWord() {
+            if (usedWords.length === web3Words.length) {
+                endGame();
+                return;
+            }
+
+            let availableWords = web3Words.filter(word => !usedWords.includes(word.word));
+            currentWord = availableWords[Math.floor(Math.random() * availableWords.length)];
+            usedWords.push(currentWord.word);
+            shuffledWord = shuffleWord(currentWord.word);
+            displayWord();
+            checkButton.disabled = false;
+            resultDiv.textContent = '';
+        }
+
+        function displayWord() {
+            wordContainer.innerHTML = '';
+            letterContainer.innerHTML = '';
+            
+            shuffledWord.split('').forEach(letter => {
+                const letterDiv = document.createElement('div');
+                letterDiv.classList.add('letter', 'unselected');
+                letterDiv.textContent = letter;
+                letterDiv.addEventListener('click', () => moveLetter(letterDiv));
+                letterContainer.appendChild(letterDiv);
+            });
+        }
+
+        function moveLetter(letterDiv) {
+            if (letterDiv.parentNode === letterContainer) {
+                wordContainer.appendChild(letterDiv);
+                letterDiv.classList.remove('unselected');
+                letterDiv.classList.add('selected');
+            } else {
+                letterContainer.appendChild(letterDiv);
+                letterDiv.classList.remove('selected');
+                letterDiv.classList.add('unselected');
+            }
+            checkButton.disabled = false;
+        }
+
+        function checkWord() {
+            const arrangedWord = Array.from(wordContainer.children).map(div => div.textContent).join('');
+            if (arrangedWord === currentWord.word) {
+                resultDiv.textContent = `Correct! ${currentWord.word}: ${currentWord.meaning}`;
+                resultDiv.style.color = 'green';
+                tokens += 5;
+                tokensSpan.textContent = tokens;
+                setTimeout(newWord, 2000);
+            } else {
+                showPopup();
+                setTimeout(endGame, 2000);
+            }
+        }
+
+        function showPopup() {
+            popup.style.display = 'block';
+            setTimeout(() => {
+                popup.style.display = 'none';
+            }, 2000);
+        }
+
+        function updateTimer() {
+            const minutes = Math.floor(timeLeft / 60);
+            const seconds = timeLeft % 60;
+            timeLeftSpan.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+            
+            if (timeLeft === 0) {
+                clearInterval(timer);
+                endGame();
+            } else {
+                timeLeft--;
+            }
+        }
+
+        function endGame() {
+            wordContainer.innerHTML = '';
+            letterContainer.innerHTML = '';
+            checkButton.disabled = true;
+            resultDiv.textContent = `Game Over! Your final score: ${tokens} tokens`;
+            startAgainButton.style.display = 'block';
+            clearInterval(timer);
+        }
+
+        function startAgain() {
+            timeLeft = 180;
+            tokens = 0;
+            usedWords = [];
+            tokensSpan.textContent = '0';
+            startAgainButton.style.display = 'none';
+            timer = setInterval(updateTimer, 1000);
+            newWord();
+        }
+
+        function toggleMusic() {
+            if (isMusicPlaying) {
+                backgroundMusic.pause();
+                musicControl.textContent = 'Music Off';
+            } else {
+                backgroundMusic.play();
+                musicControl.textContent = 'Music On';
+            }
+            isMusicPlaying = !isMusicPlaying;
+        }
+
+        checkButton.addEventListener('click', checkWord);
+        startAgainButton.addEventListener('click', startAgain);
+        musicControl.addEventListener('click', toggleMusic);
+
+        startAgain(); // Initial game start
+    </script>
+</body>
+</html>
